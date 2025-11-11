@@ -28,6 +28,11 @@ export default function App() {
   const [form, setForm] = useState<FormState>({ name: "", email: "", phone: "", reason: "", datetimeISO: "" });
   const [msg, setMsg] = useState("");
 
+  // Separate filter/search state
+  const [searchName, setSearchName] = useState("");
+  const [searchEmail, setSearchEmail] = useState("");
+  const [searchPhone, setSearchPhone] = useState("");
+
   function load() {
     fetch(`/api/appointments/available?weekStart=${weekStartStr(weekStart)}`)
       .then(r => r.json())
@@ -63,6 +68,20 @@ export default function App() {
     setAppts(prev => prev.map(p => p.id === updated.id ? updated : p));
   }
 
+  // Filter logic for appointments
+  const filteredAppts = appts.filter(appt => {
+    const matchesName =
+      !searchName.trim() ||
+      appt.name.toLowerCase().includes(searchName.trim().toLowerCase());
+    const matchesEmail =
+      !searchEmail.trim() ||
+      appt.email.toLowerCase().includes(searchEmail.trim().toLowerCase());
+    const matchesPhone =
+      !searchPhone.trim() ||
+      appt.phone.toLowerCase().includes(searchPhone.trim().toLowerCase());
+    return matchesName && matchesEmail && matchesPhone;
+  });
+
   return (
     <div className="container py-4">
       <div className="mb-4">
@@ -95,7 +114,45 @@ export default function App() {
       </div>
 
       <div className="mt-4">
-        <AppointmentsTable appts={appts} onCancel={cancel} availableSlots={availableSlots} onUpdated={onUpdated} refreshSlots={() => load()} />
+        {/* --- Filter/Search UI --- */}
+        <div className="mb-3 row g-2">
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Name"
+              value={searchName}
+              onChange={e => setSearchName(e.target.value)}
+            />
+          </div>
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Email"
+              value={searchEmail}
+              onChange={e => setSearchEmail(e.target.value)}
+            />
+          </div>
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Phone"
+              value={searchPhone}
+              onChange={e => setSearchPhone(e.target.value)}
+            />
+          </div>
+        </div>
+        {/* --- End Filter/Search UI --- */}
+
+        <AppointmentsTable
+          appts={filteredAppts}
+          onCancel={cancel}
+          availableSlots={availableSlots}
+          onUpdated={onUpdated}
+          refreshSlots={() => load()}
+        />
       </div>
     </div>
   );
