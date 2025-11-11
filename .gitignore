@@ -1,0 +1,4 @@
+node_modules/
+appointments.db
+appointments.db-shm
+appointments.db-wal
