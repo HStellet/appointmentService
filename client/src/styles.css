@@ -1,0 +1,29 @@
+:root {
+  --brand-primary: #0d6efd;
+  --brand-bg: linear-gradient(180deg, #f7f8f8 0%, #ffffff 60%, #e9f0ff 100%);
+}
+
+html, body, #root { height: 100%; }
+body { background: var(--brand-bg); }
+
+.card {
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  box-shadow: 0 6px 22px rgba(13, 110, 253, 0.08);
+  border-radius: 1rem;
+}
+
+.card-header {
+  background: white;
+  border-bottom: 1px solid rgba(13, 110, 253, 0.12);
+}
+
+.slots-list { max-height: 18rem; overflow: auto; }
+
+.btn-soft {
+  background: rgba(230, 233, 241, 0.08);
+  border: 1px solid rgba(0, 0, 10, 0.15);
+}
+.btn-soft:hover { background: rgba(9, 10, 10, 0.12); }
+
+.equal-col { display: flex; }
+.equal-card { flex: 1; }
