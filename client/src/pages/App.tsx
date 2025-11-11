@@ -33,6 +33,10 @@ export default function App() {
   const [searchEmail, setSearchEmail] = useState("");
   const [searchPhone, setSearchPhone] = useState("");
 
+  // Add date range filter state
+  const [searchDateFrom, setSearchDateFrom] = useState("");
+  const [searchDateTo, setSearchDateTo] = useState("");
+
   function load() {
     fetch(`/api/appointments/available?weekStart=${weekStartStr(weekStart)}`)
       .then(r => r.json())
@@ -79,7 +83,17 @@ export default function App() {
     const matchesPhone =
       !searchPhone.trim() ||
       appt.phone.toLowerCase().includes(searchPhone.trim().toLowerCase());
-    return matchesName && matchesEmail && matchesPhone;
+
+    // Date range filter
+    // Convert appointment datetime to yyyy-mm-dd for comparison
+    const apptDateISO = appt.datetime
+      ? new Date(appt.datetime).toISOString().slice(0, 10)
+      : "";
+    const fromOk = !searchDateFrom || apptDateISO >= searchDateFrom;
+    const toOk = !searchDateTo || apptDateISO <= searchDateTo;
+    const matchesDate = fromOk && toOk;
+
+    return matchesName && matchesEmail && matchesPhone && matchesDate;
   });
 
   return (
@@ -124,9 +138,10 @@ export default function App() {
             </span>
             <span className="text-muted" style={{fontWeight: 500, letterSpacing: "0.5px"}}>Filter Appointments</span>
           </div>
-          <div className="row g-2">
-            <div className="col-md-4">
+          <div className="row g-2 align-items-end">
+            <div className="col-md-3">
               <input
+                id="filter-name"
                 type="text"
                 className="form-control"
                 placeholder="Name"
@@ -134,8 +149,9 @@ export default function App() {
                 onChange={e => setSearchName(e.target.value)}
               />
             </div>
-            <div className="col-md-4">
+            <div className="col-md-3">
               <input
+                id="filter-email"
                 type="text"
                 className="form-control"
                 placeholder="Email"
@@ -143,13 +159,34 @@ export default function App() {
                 onChange={e => setSearchEmail(e.target.value)}
               />
             </div>
-            <div className="col-md-4">
+            <div className="col-md-2">
               <input
+                id="filter-phone"
                 type="text"
                 className="form-control"
                 placeholder="Phone"
                 value={searchPhone}
                 onChange={e => setSearchPhone(e.target.value)}
+              />
+            </div>
+            <div className="col-md-2">
+              <input
+                id="date-from"
+                type="date"
+                className="form-control"
+                value={searchDateFrom}
+                onChange={e => setSearchDateFrom(e.target.value)}
+                placeholder="Date From (dd-mm-yyyy)"
+              />
+            </div>
+            <div className="col-md-2">
+              <input
+                id="date-to"
+                type="date"
+                className="form-control"
+                value={searchDateTo}
+                onChange={e => setSearchDateTo(e.target.value)}
+                placeholder="Date To (dd-mm-yyyy)"
               />
             </div>
           </div>
