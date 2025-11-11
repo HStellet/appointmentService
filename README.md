@@ -20,6 +20,7 @@ Small appointment booking demo: a TypeScript/Express backend using SQLite (bette
 ## Features
 
 - List appointments
+- Filter appointments by user details (name/email) or date range 
 - Show available 30-minute slots for a week (Mon-Fri business hours)
 - Create and cancel appointments
 - Edit appointment (inline row edit) with datetime dropdown populated from available slots
