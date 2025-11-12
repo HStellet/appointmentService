@@ -24,8 +24,8 @@ export default class AppointmentsRepo {
   }
 
   getAllDatetimesSet(): Set<string> {
-    const rows = db.prepare<[], { datetime: string }>("SELECT datetime FROM appointments").all();
-    return new Set(rows.map(r => r.datetime));
+  const rows = db.prepare<[], { datetime: string }>("SELECT datetime FROM appointments").all();
+  return new Set(rows.map((r: { datetime: string }) => r.datetime));
   }
 
   getById(id: number): Appointment | undefined {

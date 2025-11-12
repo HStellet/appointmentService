@@ -1,43 +1,38 @@
 # Appointment Booking
 
-- **Server:** TypeScript + Express + better-sqlite3
-- **Client:** React + Vite + TypeScript
 
-## Run locally
+An appointment booking application which shows available slots in a week in business hours, booked slots and a form to book new slots. It also shows you appointments of that application.
 
-**Terminal 1 (API)**
-```bash
-````markdown
-# Appointment Booking
-
-Small appointment booking demo: a TypeScript/Express backend using SQLite (better-sqlite3) and a Vite + React + TypeScript frontend.
-
-## Tech stack
-
-- Server: Node 18+, TypeScript, Express, better-sqlite3
-- Client: React 18, Vite, TypeScript, Bootstrap for quick styling
+- **Backend:** Node 18+, TypeScript, Express
+- **Database:** SQLite (better-sqlite3)
+- **Client:** React 18, Vite, TypeScript, Bootstrap for quick styling
 
 ## Features
-
 - List appointments
-- Filter appointments by user details (name/email) or date range 
 - Show available 30-minute slots for a week (Mon-Fri business hours)
 - Create and cancel appointments
-- Edit appointment (inline row edit) with datetime dropdown populated from available slots
 - Simple validation (no double-booking, business hours)
+
+## Optional Features included
+- Tests ✅
+- Filter appointments by user details (name/email/phone) or date range ✅
+- Edit appointment (inline row edit) with datetime dropdown populated from available slots ✅
+- Styling ✅
+- Timezone support ✅
 
 ## Prerequisites
 
 - Node 18+ and npm
 - Git (to clone)
 
+
 ## Local setup (step-by-step)
 
 1. Clone the repo and navigate into it:
 
 ```bash
-git clone <repo-url> appointment-booking-ts
-cd appointment-booking-ts
+git clone https://github.com/HStellet/appointmentService.git
+cd appointmentService
 ```
 
 2. Start the server
@@ -45,7 +40,6 @@ cd appointment-booking-ts
 ```bash
 cd server
 npm install
-# The server uses a local SQLite DB file by default. You can override with DB_PATH env var.
 export DB_PATH=./appointments.db
 npm run dev
 ```
@@ -128,7 +122,7 @@ Response: 200
 { "ok": true }
 ```
 
-5) PATCH /api/appointments/update/:id  (or PATCH /api/appointments/:id if you changed the router)
+5) PATCH /api/appointments/:id
 
 Request body (JSON): same shape as creation (datetimeISO, name, email, phone, reason)
 
@@ -183,7 +177,6 @@ Server:
 ```bash
 cd server
 npm install
-# ensure DB_PATH points to a writable DB or leave default
 export DB_PATH=./appointments.db
 npm run test
 ```
@@ -194,6 +187,3 @@ cd client
 npm install
 npm run test
 ```
-
-Notes:
-- The server test exercises `AppointmentsRepo` and will write to the configured SQLite DB. Use a disposable DB for CI or local test runs if you don't want to touch production data.
