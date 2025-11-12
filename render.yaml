@@ -5,10 +5,7 @@ services:
     region: oregon
     plan: free
   buildCommand: "cd client && npm ci && npm run build && cd ../server && npm ci && npm run build && mkdir -p dist/public && cp -r ../client/dist/* dist/public/"
-    startCommand: |
-      cd server
-      npm ci --production
-      npm start
+  startCommand: "cd server && npm ci --production && npm start"
     autoDeploy: true
     disk:
       mountPath: /data
