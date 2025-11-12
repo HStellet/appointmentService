@@ -1,4 +1,6 @@
-import { zonedTimeToUtc, utcToZonedTime } from "date-fns-tz";
+// date-fns-tz is published as CommonJS; import default and destructure to avoid ESM named-export errors at runtime
+import pkg from "date-fns-tz";
+const { zonedTimeToUtc, utcToZonedTime } = pkg as any;
 
 export const SLOT_MINUTES = 30 as const;
 export const BUSINESS_START_HOUR = 9 as const;
