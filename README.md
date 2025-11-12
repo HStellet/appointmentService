@@ -1,5 +1,6 @@
 # Appointment Booking
 
+Live demo: https://appointmentservice.onrender.com/
 
 An appointment booking application which shows available slots in a week in business hours, booked slots and a form to book new slots. It also shows you appointments of that application.
 
@@ -187,3 +188,22 @@ cd client
 npm install
 npm run test
 ```
+
+## Render deployment notes
+- A `render.yaml` manifest is included in the repo root to build and deploy the app on Render. If you create the service via the Render dashboard you can either select "Use render.yaml" (if available) or paste the following values into the Create form:
+	- Build command:
+		`cd client && npm ci && npm run build && cd ../server && npm ci && npm run build && rm -rf dist/public && mkdir -p dist/public && cp -a ../client/dist/. dist/public/`
+	- Start command:
+		`cd server && node dist/index.js`
+	- Environment variable:
+		`DB_PATH=/data/appointments.db`
+	- Persistent disk: mount at `/data` (1 GB) so SQLite persists across restarts
+
+Notes
+- The server reads `DB_PATH` (env) and defaults to `server/data/appointments.db` locally; on Render set it to `/data/appointments.db` and attach a disk at `/data`.
+- For quick debug I added a fallback to `/tmp/appointments.db` so the app can start even if a disk isn't mounted — for production you should attach the disk.
+
+Repository cleanup
+- Build artifacts (`dist/`) are ignored (`.gitignore`) — Render builds from source during deploy.
+
+If you want anything added to this README (examples, screenshots, or a short deploy log), tell me and I will update it.
