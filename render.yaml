@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: appointment-booking-server
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: |
+      # build server and client, then copy client dist into server dist/public
+      cd client
+      npm ci
+      npm run build
+      cd ../server
+      npm ci
+      npm run build
+      # copy client build into server dist/public so Express can serve it
+      mkdir -p dist/public
+      cp -r ../client/dist/* dist/public/
+    startCommand: |
+      cd server
+      npm ci --production
+      npm start
+    autoDeploy: true
+    disk:
+      mountPath: /data
+      sizeGb: 1
+    envVars:
+      - key: DB_PATH
+        value: /data/appointments.db
