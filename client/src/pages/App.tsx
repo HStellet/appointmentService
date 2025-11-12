@@ -2,52 +2,25 @@ import { useEffect, useState } from "react";
 import CalendarPanel from "../components/CalendarPanel";
 import BookingForm from "../components/BookingForm";
 import AppointmentsTable from "../components/AppointmentsTable";
+import FiltersPanel from "../components/FiltersPanel";
 import type { Appointment, FormState } from "../types";
-
-function startOfWeekMonday(date = new Date()) {
-  const t = new Date(date);
-  const day = t.getDay();               // 0..6
-  const diff = (day === 0 ? -6 : 1 - day);
-  t.setDate(t.getDate() + diff);
-  t.setHours(0, 0, 0, 0);
-  return t;
-}
-
-function weekStartStr(weekStart: Date) {
-  const y = weekStart.getFullYear();
-  const m = String(weekStart.getMonth() + 1).padStart(2, '0');
-  const d = String(weekStart.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
+import useAppointments from "../hooks/useAppointments";
+import { startOfWeekMonday } from "../utils/date";
 
 export default function App() {
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const { availableSlots, bookedSlots, appts, load, updateLocalAppointment } = useAppointments();
   const [weekStart, setWeekStart] = useState<Date>(startOfWeekMonday());
-  const [appts, setAppts] = useState<Appointment[]>([]);
   const [form, setForm] = useState<FormState>({ name: "", email: "", phone: "", reason: "", datetimeISO: "" });
   const [msg, setMsg] = useState("");
 
-  // Separate filter/search state
+  // Filter/search state
   const [searchName, setSearchName] = useState("");
   const [searchEmail, setSearchEmail] = useState("");
   const [searchPhone, setSearchPhone] = useState("");
-
-  // Add date range filter state
   const [searchDateFrom, setSearchDateFrom] = useState("");
   const [searchDateTo, setSearchDateTo] = useState("");
 
-  function load() {
-    fetch(`/api/appointments/available?weekStart=${weekStartStr(weekStart)}`)
-      .then(r => r.json())
-      .then(d => {
-        // server returns { weekStart, available, booked }
-        setAvailableSlots(d.resp.available || []);
-        setBookedSlots(d.resp.booked || []);
-      });
-    fetch(`/api/appointments`).then(r => r.json()).then(setAppts);
-  }
-  useEffect(() => { load(); }, [weekStart]);
+  useEffect(() => { load(weekStart); }, [weekStart, load]);
 
   function book(e: React.FormEvent) {
     e.preventDefault(); setMsg("");
@@ -58,18 +31,19 @@ export default function App() {
       body: JSON.stringify(form)
     })
       .then(async r => { if (!r.ok) { const x = await r.json().catch(() => ({})); throw new Error(x.error || `HTTP ${r.status}`); } return r.json(); })
-      .then(_ => { setMsg("Booked!"); setForm({ datetimeISO: "", name: "", email: "", phone: "", reason: "" }); load(); })
+      .then(_ => { setMsg("Booked!"); setForm({ datetimeISO: "", name: "", email: "", phone: "", reason: "" }); load(weekStart); })
       .catch(err => setMsg(err.message));
   }
 
   function cancel(id: number) {
     if (!confirm("Cancel this appointment?")) return;
     fetch(`/api/appointments/${id}`, { method: "DELETE" })
-      .then(_ => load());
+      .then(_ => load(weekStart));
   }
 
   function onUpdated(updated: Appointment) {
-    setAppts(prev => prev.map(p => p.id === updated.id ? updated : p));
+    updateLocalAppointment(updated);
+    load(weekStart);
   }
 
   // Filter logic for appointments
@@ -82,10 +56,8 @@ export default function App() {
       appt.email.toLowerCase().includes(searchEmail.trim().toLowerCase());
     const matchesPhone =
       !searchPhone.trim() ||
-      appt.phone.toLowerCase().includes(searchPhone.trim().toLowerCase());
+      (appt.phone || "").toLowerCase().includes(searchPhone.trim().toLowerCase());
 
-    // Date range filter
-    // Convert appointment datetime to yyyy-mm-dd for comparison
     const apptDateISO = appt.datetime
       ? new Date(appt.datetime).toISOString().slice(0, 10)
       : "";
@@ -103,7 +75,6 @@ export default function App() {
         <div className="text-muted">Mon–Fri, 9:00 AM – 5:00 PM (30-minute slot)</div>
       </div>
 
-      {/* Equal height columns via d-flex on columns + .equal-card on cards */}
       <div className="row g-4 align-items-stretch">
         <div className="col-md-6 equal-col">
           <CalendarPanel
@@ -128,77 +99,25 @@ export default function App() {
       </div>
 
       <div className="mt-4">
-        {/* --- Filter/Search UI --- */}
-        <div className="mb-3">
-          <div className="d-flex align-items-center mb-2" style={{gap: "0.5rem"}}>
-            <span style={{fontSize: "1.2em", color: "#0d6efd"}} title="Filter">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-funnel" viewBox="0 0 16 16">
-                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .39.812l-4.6 5.748V13.5a.5.5 0 0 1-.276.447l-3 1.5A.5.5 0 0 1 6 15v-7.94L1.61 1.812A.5.5 0 0 1 1.5 1.5zm1.634.5L6.5 7.06V14l2-1V7.06l3.366-5.06H3.134z"/>
-              </svg>
-            </span>
-            <span className="text-muted" style={{fontWeight: 500, letterSpacing: "0.5px"}}>Filter Appointments</span>
-          </div>
-          <div className="row g-2 align-items-end">
-            <div className="col-md-3">
-              <input
-                id="filter-name"
-                type="text"
-                className="form-control"
-                placeholder="Name"
-                value={searchName}
-                onChange={e => setSearchName(e.target.value)}
-              />
-            </div>
-            <div className="col-md-3">
-              <input
-                id="filter-email"
-                type="text"
-                className="form-control"
-                placeholder="Email"
-                value={searchEmail}
-                onChange={e => setSearchEmail(e.target.value)}
-              />
-            </div>
-            <div className="col-md-2">
-              <input
-                id="filter-phone"
-                type="text"
-                className="form-control"
-                placeholder="Phone"
-                value={searchPhone}
-                onChange={e => setSearchPhone(e.target.value)}
-              />
-            </div>
-            <div className="col-md-2">
-              <input
-                id="date-from"
-                type="date"
-                className="form-control"
-                value={searchDateFrom}
-                onChange={e => setSearchDateFrom(e.target.value)}
-                placeholder="Date From (dd-mm-yyyy)"
-              />
-            </div>
-            <div className="col-md-2">
-              <input
-                id="date-to"
-                type="date"
-                className="form-control"
-                value={searchDateTo}
-                onChange={e => setSearchDateTo(e.target.value)}
-                placeholder="Date To (dd-mm-yyyy)"
-              />
-            </div>
-          </div>
-        </div>
-        {/* --- End Filter/Search UI --- */}
+        <FiltersPanel
+          searchName={searchName}
+          setSearchName={setSearchName}
+          searchEmail={searchEmail}
+          setSearchEmail={setSearchEmail}
+          searchPhone={searchPhone}
+          setSearchPhone={setSearchPhone}
+          searchDateFrom={searchDateFrom}
+          setSearchDateFrom={setSearchDateFrom}
+          searchDateTo={searchDateTo}
+          setSearchDateTo={setSearchDateTo}
+        />
 
         <AppointmentsTable
           appts={filteredAppts}
           onCancel={cancel}
           availableSlots={availableSlots}
           onUpdated={onUpdated}
-          refreshSlots={() => load()}
+          refreshSlots={() => load(weekStart)}
         />
       </div>
     </div>

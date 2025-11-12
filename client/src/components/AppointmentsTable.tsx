@@ -37,7 +37,7 @@ export default function AppointmentsTable({ appts, onCancel, availableSlots, onU
 
   async function save(id: number) {
     try {
-      const res = await fetch(`/api/appointments/update/${id}`, {
+      const res = await fetch(`/api/appointments/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ datetimeISO: form.datetime, name: form.name, email: form.email, phone: form.phone || null, reason: form.reason || null })
