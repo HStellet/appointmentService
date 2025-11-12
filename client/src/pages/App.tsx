@@ -25,8 +25,10 @@ export default function App() {
   function book(e: React.FormEvent) {
     e.preventDefault(); setMsg("");
 
-    const tzOffset = -new Date().getTimezoneOffset();
-    fetch(`/api/appointments?tzOffset=${tzOffset}`, {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const tzOffset = -new Date().getTimezoneOffset();
+  const qs = tz ? `tz=${encodeURIComponent(tz)}` : `tzOffset=${tzOffset}`;
+  fetch(`/api/appointments?${qs}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form)

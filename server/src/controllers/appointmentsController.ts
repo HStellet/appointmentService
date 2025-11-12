@@ -35,10 +35,11 @@ export default class AppointmentController {
         weekStart = temp;
       }
 
-  // optional timezone offset in minutes (client should send getTimezoneOffset() for the weekStart date)
+  // optional timezone: either IANA tz string in `tz` or numeric tzOffset minutes in `tzOffset`
+  const tz = req.query.tz as string | undefined;
   const tzOffsetQs = req.query.tzOffset as string | undefined;
   const tzOffset = tzOffsetQs ? Number(tzOffsetQs) : undefined;
-  const { available, booked } = this.svc.getAvailableSlots(weekStart, tzOffset);
+  const { available, booked } = this.svc.getAvailableSlots(weekStart, tz ?? tzOffset);
       return res.json({ weekStart: weekStart.toISOString(), resp: { available, booked } });
     } catch (err) {
       return next(err);
@@ -47,9 +48,10 @@ export default class AppointmentController {
 
   create(req: Request, res: Response, next: NextFunction) {
     try {
+  const tz = req.query.tz as string | undefined;
   const tzOffsetQs = req.query.tzOffset as string | undefined;
   const tzOffset = tzOffsetQs ? Number(tzOffsetQs) : undefined;
-  const created = this.svc.create(req.body || {}, tzOffset);
+  const created = this.svc.create(req.body || {}, tz ?? tzOffset);
       return res.status(201).json(created);
     } catch (err) {
       return next(err);
@@ -67,9 +69,10 @@ export default class AppointmentController {
 
   update(req: Request, res: Response, next: NextFunction) {
     try {
+  const tz = req.query.tz as string | undefined;
   const tzOffsetQs = req.query.tzOffset as string | undefined;
   const tzOffset = tzOffsetQs ? Number(tzOffsetQs) : undefined;
-  const out = this.svc.update(req.params.id, req.body || {}, tzOffset);
+  const out = this.svc.update(req.params.id, req.body || {}, tz ?? tzOffset);
       return res.json(out);
     } catch (err) {
       return next(err);

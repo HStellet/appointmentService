@@ -9,7 +9,7 @@ export default class AppointmentService {
     return this.repo.getAll();
   }
 
-  getAvailableSlots(weekStart: Date, tzOffsetMinutes?: number): { available: string[]; booked: string[] } {
+  getAvailableSlots(weekStart: Date, tzOrOffset?: string | number): { available: string[]; booked: string[] } {
     const now = new Date();
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 7);
@@ -19,16 +19,16 @@ export default class AppointmentService {
         .map(a => a.datetime)
         .filter(iso => {
           const d = new Date(iso);
-          return d >= now && d >= weekStart && d < weekEnd && isBusinessTime(d, tzOffsetMinutes);
+          return d >= now && d >= weekStart && d < weekEnd && isBusinessTime(d, tzOrOffset);
         })
     );
 
     const available: string[] = [];
     const booked: string[] = [];
 
-    for (const slot of generateSlotsForWeek(weekStart, tzOffsetMinutes)) {
+    for (const slot of generateSlotsForWeek(weekStart, tzOrOffset)) {
       if (slot < now || slot >= weekEnd) continue;
-      if (!isBusinessTime(slot, tzOffsetMinutes)) continue;
+      if (!isBusinessTime(slot, tzOrOffset)) continue;
       const iso = toISOMinute(slot);
       (bookedInWindow.has(iso) ? booked : available).push(iso);
     }
@@ -38,7 +38,7 @@ export default class AppointmentService {
   }
 
 
-  create(input: CreateAppointmentInput, tzOffsetMinutes?: number): Appointment {
+  create(input: CreateAppointmentInput, tzOrOffset?: string | number): Appointment {
     const { datetimeISO, name, email, phone, reason } = input || ({} as CreateAppointmentInput);
     if (!datetimeISO || !name || !email) {
       const e: any = new Error("datetimeISO, name, and email are required"); e.status = 400; throw e;
@@ -49,7 +49,7 @@ export default class AppointmentService {
   const now = new Date();
   // compare instants - dt is an absolute UTC instant; booking in the past is independent of tz
   if (dt < now) { const e: any = new Error("Cannot book in the past"); e.status = 422; throw e; }
-  if (!isBusinessTime(dt, tzOffsetMinutes)) {
+  if (!isBusinessTime(dt, tzOrOffset)) {
       const e: any = new Error("Outside business hours or not on a 30-minute slot (Mon-Fri, 9-17)"); e.status = 422; throw e;
     }
     if (typeof name !== "string" || name.trim().length === 0) { const e: any = new Error("Name is required"); e.status = 422; throw e; }
@@ -72,7 +72,7 @@ export default class AppointmentService {
     return { success: true as const };
   }
 
-  update(id: string, input: CreateAppointmentInput, tzOffsetMinutes?: number): Appointment {
+  update(id: string, input: CreateAppointmentInput, tzOrOffset?: string | number): Appointment {
     const num = Number(id);
     if (!Number.isInteger(num)) { const e: any = new Error("Invalid id"); e.status = 400; throw e; }
 
@@ -90,7 +90,7 @@ export default class AppointmentService {
 
   const now = new Date();
   if (dt < now) { const e: any = new Error("Cannot book in the past"); e.status = 422; throw e; }
-  if (!isBusinessTime(dt, tzOffsetMinutes)) {
+  if (!isBusinessTime(dt, tzOrOffset)) {
       const e: any = new Error("Outside business hours or not on a 30-minute slot (Mon-Fri, 9-17)"); e.status = 422; throw e;
     }
 
