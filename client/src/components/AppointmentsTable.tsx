@@ -37,7 +37,8 @@ export default function AppointmentsTable({ appts, onCancel, availableSlots, onU
 
   async function save(id: number) {
     try {
-      const res = await fetch(`/api/appointments/${id}`, {
+      const tzOffset = -new Date().getTimezoneOffset();
+      const res = await fetch(`/api/appointments/${id}?tzOffset=${tzOffset}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ datetimeISO: form.datetime, name: form.name, email: form.email, phone: form.phone || null, reason: form.reason || null })

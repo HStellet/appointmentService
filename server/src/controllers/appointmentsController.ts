@@ -35,7 +35,10 @@ export default class AppointmentController {
         weekStart = temp;
       }
 
-      const { available, booked } = this.svc.getAvailableSlots(weekStart);
+  // optional timezone offset in minutes (client should send getTimezoneOffset() for the weekStart date)
+  const tzOffsetQs = req.query.tzOffset as string | undefined;
+  const tzOffset = tzOffsetQs ? Number(tzOffsetQs) : undefined;
+  const { available, booked } = this.svc.getAvailableSlots(weekStart, tzOffset);
       return res.json({ weekStart: weekStart.toISOString(), resp: { available, booked } });
     } catch (err) {
       return next(err);
@@ -44,7 +47,9 @@ export default class AppointmentController {
 
   create(req: Request, res: Response, next: NextFunction) {
     try {
-      const created = this.svc.create(req.body || {});
+  const tzOffsetQs = req.query.tzOffset as string | undefined;
+  const tzOffset = tzOffsetQs ? Number(tzOffsetQs) : undefined;
+  const created = this.svc.create(req.body || {}, tzOffset);
       return res.status(201).json(created);
     } catch (err) {
       return next(err);
@@ -62,7 +67,9 @@ export default class AppointmentController {
 
   update(req: Request, res: Response, next: NextFunction) {
     try {
-      const out = this.svc.update(req.params.id, req.body || {});
+  const tzOffsetQs = req.query.tzOffset as string | undefined;
+  const tzOffset = tzOffsetQs ? Number(tzOffsetQs) : undefined;
+  const out = this.svc.update(req.params.id, req.body || {}, tzOffset);
       return res.json(out);
     } catch (err) {
       return next(err);

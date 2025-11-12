@@ -8,7 +8,9 @@ export default function useAppointments() {
   const [appts, setAppts] = useState<Appointment[]>([]);
 
   const load = useCallback((weekStart: Date) => {
-    fetch(`/api/appointments/available?weekStart=${weekStartStr(weekStart)}`)
+    // minutes east of UTC (positive east)
+    const tzOffset = -new Date().getTimezoneOffset();
+    fetch(`/api/appointments/available?weekStart=${weekStartStr(weekStart)}&tzOffset=${tzOffset}`)
       .then(r => r.json())
       .then(d => {
         setAvailableSlots(d.resp?.available || []);

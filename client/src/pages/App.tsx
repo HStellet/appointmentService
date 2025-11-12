@@ -25,7 +25,8 @@ export default function App() {
   function book(e: React.FormEvent) {
     e.preventDefault(); setMsg("");
 
-    fetch(`/api/appointments`, {
+    const tzOffset = -new Date().getTimezoneOffset();
+    fetch(`/api/appointments?tzOffset=${tzOffset}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form)
